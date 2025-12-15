@@ -31,12 +31,6 @@ def print_banner():
 def run_full_pipeline(input_dir: str, output_rua: str = None, output_ruf: str = None, skip_extraction: bool = False):
     """
     Run the complete DMARC analysis pipeline
-
-    Args:
-        input_dir: Directory containing raw files (ZIP, EML, etc.) or extracted files
-        output_rua: Output filename for RUA analysis (default: rua_analysis.xlsx)
-        output_ruf: Output filename for RUF analysis (default: ruf_analysis.xlsx)
-        skip_extraction: Skip extraction step if files are already extracted
     """
     output_rua = output_rua or 'rua_analysis.xlsx'
     output_ruf = output_ruf or 'ruf_analysis.xlsx'
@@ -50,14 +44,16 @@ def run_full_pipeline(input_dir: str, output_rua: str = None, output_ruf: str = 
         extractor = FileExtractor(output_dir=extracted_dir)
         extracted_files = extractor.extract_all(input_dir)
 
-        if not extracted_files:
-            print("\n❌ No files were extracted. Please check your input directory.")
+        # Si stats['total_files'] es 0, no hay nada que hacer
+        stats = extractor.get_statistics()
+        
+        if stats['total_files'] == 0:
+            print("\n❌ No XML/HTML files were extracted. Please check your input directory.")
             return
 
-        stats = extractor.get_statistics()
         print(f"\n📊 Extraction Statistics:")
-        print(f"   Files processed: {stats['total_files_processed']}")
-        print(f"   Files extracted: {stats['total_files_extracted']}")
+        # CORREGIDO: Usamos las claves correctas que devuelve FileExtractor
+        print(f"   Total files extracted: {stats['total_files']}")
         print(f"   HTML files: {stats['html_files']}")
         print(f"   XML files: {stats['xml_files']}")
     else:
@@ -125,11 +121,11 @@ def run_extraction_only(input_dir: str):
 
     stats = extractor.get_statistics()
     print(f"\n📊 Extraction Statistics:")
-    print(f"   Files processed: {stats['total_files_processed']}")
-    print(f"   Files extracted: {stats['total_files_extracted']}")
+    # CORREGIDO: Usamos las claves correctas
+    print(f"   Total files extracted: {stats['total_files']}")
     print(f"   HTML files: {stats['html_files']}")
     print(f"   XML files: {stats['xml_files']}")
-    print(f"   Output directory: {stats['output_directory']}")
+    print(f"   Output directory: {extractor.output_dir}")
 
 
 def run_classification_only(input_dir: str):
@@ -195,18 +191,6 @@ Examples:
 
   # Run only extraction
   %(prog)s --extract --input reports/raw
-
-  # Run only classification
-  %(prog)s --classify --input reports/extracted
-
-  # Run only RUA analysis
-  %(prog)s --analyze rua --input reports/rua --output my_rua.xlsx
-
-  # Run only RUF analysis
-  %(prog)s --analyze ruf --input reports/ruf --output my_ruf.xlsx
-
-  # Skip extraction if files already extracted
-  %(prog)s --input reports/extracted --skip-extraction
         """
     )
 
