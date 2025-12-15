@@ -1,342 +1,153 @@
-# DMARC Report Analyzer
+# Analizador de Reportes DMARC
 
-A comprehensive Python tool to analyze DMARC (Domain-based Message Authentication, Reporting & Conformance) reports, supporting both **RUA (aggregate reports)** and **RUF (forensic/failure reports)** from multiple email providers.
+Una herramienta completa en Python para analizar reportes DMARC (Domain-based Message Authentication, Reporting & Conformance). Soporta reportes **RUA (agregados)** y **RUF (forenses/fallos)** de múltiples proveedores, incluyendo soporte nativo para archivos de Microsoft Outlook (`.msg`).
 
-## 🎯 Features
+## 🎯 Características
 
-### Complete 3-Part Pipeline
+### Pipeline Completo de 3 Etapas
 
-1. **🔧 PARTE 1: File Extraction**
-   - Extracts HTML/XML files from various compressed formats (ZIP, GZ, TAR)
-   - Processes EML files with nested attachments
-   - Handles complex nested structures (ZIP within EML, etc.)
-   - Automatically detects file types
+1.  **🔧 PARTE 1: Extracción de Archivos**
+    * Extrae automáticamente archivos HTML/XML de varios formatos comprimidos (ZIP, GZ, TAR).
+    * **¡NUEVO!** Soporte nativo para archivos **.msg de Outlook**: extrae automáticamente los reportes adjuntos (XML/ZIP) dentro de los correos guardados.
+    * Procesa archivos EML con adjuntos anidados.
+    * Detecta automáticamente los tipos de archivo.
 
-2. **🔧 PARTE 2: Report Classification**
-   - Intelligently classifies reports as RUA or RUF
-   - Analyzes both XML and HTML content
-   - Uses keyword matching and heuristics
-   - Organizes reports into separate directories
+2.  **🔧 PARTE 2: Clasificación de Reportes**
+    * Clasifica inteligentemente los reportes como RUA o RUF.
+    * Analiza contenido XML y HTML.
+    * Utiliza coincidencia de palabras clave y heurística.
+    * Organiza los reportes en directorios separados.
 
-3. **🔧 PARTE 3: Analysis & Reporting**
-   - **RUA Analysis**: Aggregate reports with IP statistics and authentication metrics
-   - **RUF Analysis**: Forensic reports with detailed failure information
-   - Generates comprehensive Excel reports with multiple sheets
-   - Provides summary statistics and visualizations
+3.  **🔧 PARTE 3: Análisis y Reportes**
+    * **Análisis RUA**: Reportes agregados con estadísticas de IP y métricas de autenticación.
+    * **Análisis RUF**: Reportes forenses con información detallada de fallos.
+    * Genera archivos Excel profesionales con múltiples hojas, resúmenes y estadísticas.
 
-### Additional Features
+### Características Adicionales
 
-- **Multi-Format Support**: XML and HTML report formats
-- **Multi-Provider Support**: Microsoft 365, Google Workspace, and all DMARC-compliant providers
-- **Flexible Execution**: Run complete pipeline or individual steps
-- **Command-Line Interface**: Easy-to-use CLI with multiple modes
-- **Excel Export**: Professional multi-sheet reports with statistics
+* **Soporte Multi-Formato**: Reportes XML, HTML y correos .MSG/.EML.
+* **Soporte Multi-Proveedor**: Microsoft 365, Google Workspace, y todos los proveedores compatibles con DMARC.
+* **Ejecución Flexible**: Ejecuta el pipeline completo o pasos individuales.
+* **Interfaz de Línea de Comandos**: CLI fácil de usar.
 
-## 📋 Requirements
+## 📋 Requisitos
 
-- Python 3.7+
-- Required libraries:
-  - pandas
-  - openpyxl
-  - beautifulsoup4
-  - Built-in: xml.etree.ElementTree, zipfile, gzip, tarfile, email
+* Python 3.7+
+* Librerías requeridas (ver `requirements.txt`):
+    * `pandas`
+    * `openpyxl`
+    * `beautifulsoup4`
+    * `extract-msg` (para soporte de Outlook)
+    * Nativas: `xml.etree.ElementTree`, `zipfile`, `gzip`, `tarfile`, `email`
 
-## 🚀 Installation
+## 🚀 Instalación
 
 ```bash
-# Clone the repository
+# Clonar el repositorio
 git clone https://github.com/Obelisc26/DMARC-Analyzer.git
 cd DMARC-Analyzer
 
-# Install dependencies
+# Instalar dependencias
 pip install -r requirements.txt
 ```
 
-## 📁 Project Structure
+## 📁 Estructura del Proyecto
 
-```
+```text
 DMARC-Analyzer/
-├── main.py                      # Main script - integrates all 3 parts
-├── dmarc_analyzer.py            # Legacy analyzer (for backward compatibility)
-├── requirements.txt
-├── README.md
+├── main.py                      # Script principal - integra las 3 partes
+├── requirements.txt             # Dependencias del proyecto
+├── README.md                    # Documentación
 │
-├── extractors/                  # PARTE 1: File extraction
+├── extractors/                  # PARTE 1: Extracción de archivos
 │   ├── __init__.py
-│   └── file_extractor.py
+│   └── file_extractor.py        # Lógica de extracción (ZIP, GZ, MSG, EML)
 │
-├── classifiers/                 # PARTE 2: Report classification
+├── classifiers/                 # PARTE 2: Clasificación de reportes
 │   ├── __init__.py
 │   └── report_classifier.py
 │
-├── analyzers/                   # PARTE 3: Analysis
+├── analyzers/                   # PARTE 3: Análisis
 │   ├── __init__.py
-│   ├── rua_analyzer.py         # RUA (aggregate) reports
-│   └── ruf_analyzer.py         # RUF (forensic) reports
-│
-├── examples/                    # Usage examples
-│   ├── complete_pipeline_example.py
-│   ├── step_by_step_example.py
-│   └── legacy_examples/
+│   ├── rua_analyzer.py          # Reportes RUA (agregados)
+│   └── ruf_analyzer.py          # Reportes RUF (forenses)
 │
 └── reports/
-    ├── raw/                    # Place your files here (ZIP, EML, GZ, etc.)
-    ├── extracted/              # Extracted HTML/XML files
-    ├── rua/                    # Classified RUA reports
-    └── ruf/                    # Classified RUF reports
+    ├── raw/                     # ¡Pon tus archivos aquí! (ZIP, MSG, XML, etc.)
+    ├── extracted/               # Archivos HTML/XML extraídos
+    ├── rua/                     # Reportes clasificados como RUA
+    └── ruf/                     # Reportes clasificados como RUF
 ```
 
-## 💡 Usage
+## 💡 Uso
 
-### Quick Start: Complete Pipeline
+### Inicio Rápido: Pipeline Completo
 
-The easiest way to analyze DMARC reports:
+La forma más fácil de analizar tus reportes:
+
+1.  Coloca tus archivos (ZIP, MSG de Outlook, GZ, XML) en la carpeta `reports/raw`.
+2.  Ejecuta:
+
+    ```bash
+    python main.py --input reports/raw
+    ```
+
+    Esto realizará automáticamente:
+    * **Extracción de archivos** (incluyendo adjuntos dentro de `.msg` de Outlook).
+    * **Clasificación** en RUA o RUF.
+    * **Generación de Excel** con el análisis.
+
+    **Salida:**
+    * `rua_analysis.xlsx`: Análisis de reportes agregados.
+    * `ruf_analysis.xlsx`: Análisis de reportes forenses.
+
+### Uso Avanzado
+
+#### Ejecutar Pasos Individuales
 
 ```bash
-# Place your files (ZIP, EML, GZ, etc.) in reports/raw/
-# Then run:
-python main.py --input reports/raw
-```
-
-This will:
-1. Extract all HTML/XML files from compressed archives
-2. Classify reports as RUA or RUF
-3. Analyze both types and generate Excel reports
-
-**Output:**
-- `rua_analysis.xlsx` - Aggregate report analysis
-- `ruf_analysis.xlsx` - Forensic report analysis
-
-### Advanced Usage
-
-#### Run Individual Steps
-
-```bash
-# PARTE 1: Extract files only
+# PARTE 1: Solo extraer archivos
 python main.py --extract --input reports/raw
 
-# PARTE 2: Classify files only (after extraction)
+# PARTE 2: Solo clasificar (después de extraer)
 python main.py --classify --input reports/extracted
 
-# PARTE 3: Analyze RUA reports only
-python main.py --analyze rua --input reports/rua --output my_rua.xlsx
-
-# PARTE 3: Analyze RUF reports only
-python main.py --analyze ruf --input reports/ruf --output my_ruf.xlsx
+# PARTE 3: Solo analizar reportes RUA
+python main.py --analyze rua --input reports/rua --output mi_reporte_rua.xlsx
 ```
 
-#### Custom Output Files
+#### Archivos de Salida Personalizados
 
 ```bash
 python main.py --input reports/raw \
-  --output-rua custom_rua_report.xlsx \
-  --output-ruf custom_ruf_report.xlsx
+  --output-rua reporte_cliente_A.xlsx \
+  --output-ruf reporte_forense_A.xlsx
 ```
 
-#### Skip Extraction (if files already extracted)
+## 📊 Contenido del Reporte (Excel)
 
-```bash
-python main.py --input reports/extracted --skip-extraction
-```
+### Análisis RUA (Reportes Agregados)
 
-### Python API Usage
+El archivo Excel contiene:
+1.  **Resumen**: Estadísticas generales (tasa de éxito, total de mensajes, IPs únicas).
+2.  **Todos los Registros**: Dataset completo.
+3.  **Fallos de Auth**: Registros donde falló SPF o DKIM (¡Crítico para depurar!).
+4.  **Estadísticas por IP**: Datos agregados por dirección IP de origen.
+5.  **Fallos SPF/DKIM**: Detalles específicos de por qué falló cada validación.
 
-#### Complete Pipeline
+### Análisis RUF (Reportes Forenses)
 
-```python
-from extractors import FileExtractor
-from classifiers import ReportClassifier
-from analyzers import RUAAnalyzer, RUFAnalyzer
+1.  **Resumen**: IPs y dominios únicos con fallos.
+2.  **Detalle Forense**: Cabeceras originales (From, To, Subject), resultados de entrega y razones del fallo.
 
-# PARTE 1: Extract files
-extractor = FileExtractor(output_dir='reports/extracted')
-extracted_files = extractor.extract_all('reports/raw')
+## 🤝 Contribuciones
 
-# PARTE 2: Classify reports
-classifier = ReportClassifier(rua_dir='reports/rua', ruf_dir='reports/ruf')
-classified = classifier.classify_all('reports/extracted')
+Las contribuciones son bienvenidas. Si encuentras un error o quieres mejorar el soporte para Outlook, por favor abre un Issue o envía un Pull Request.
 
-# PARTE 3a: Analyze RUA reports
-rua_analyzer = RUAAnalyzer()
-for rua_file in classified['rua']:
-    rua_analyzer.add_report(rua_file)
-rua_analyzer.generate_report('rua_analysis.xlsx')
+## 📄 Licencia
 
-# PARTE 3b: Analyze RUF reports
-ruf_analyzer = RUFAnalyzer()
-for ruf_file in classified['ruf']:
-    ruf_analyzer.add_report(ruf_file)
-ruf_analyzer.generate_report('ruf_analysis.xlsx')
-```
+Este proyecto está bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
 
-#### Individual Components
+---
 
-```python
-# Use only the extractor
-from extractors import FileExtractor
-
-extractor = FileExtractor(output_dir='output')
-files = extractor.extract_all('input_directory')
-stats = extractor.get_statistics()
-
-# Use only the classifier
-from classifiers import ReportClassifier
-
-classifier = ReportClassifier()
-results = classifier.classify_all('reports/extracted')
-
-# Use only RUA analyzer
-from analyzers import RUAAnalyzer
-
-analyzer = RUAAnalyzer()
-analyzer.add_report('report1.xml')
-analyzer.add_report('report2.html')
-analyzer.generate_report('output.xlsx')
-```
-
-## 📊 Report Output
-
-### RUA Analysis (Aggregate Reports)
-
-The Excel file contains:
-
-1. **Summary Sheet**: Overview statistics
-   - Total reports processed
-   - Total message count
-   - Unique source IPs
-   - Failed authentications
-   - Pass rate percentage
-
-2. **All Records**: Complete dataset of all records
-3. **Failed Auth**: Records where SPF or DKIM failed
-4. **SPF Failures**: Specific SPF failures
-5. **DKIM Failures**: Specific DKIM failures
-6. **IP Statistics**: Aggregated data by source IP
-
-### RUF Analysis (Forensic Reports)
-
-The Excel file contains:
-
-1. **Summary Sheet**: Overview statistics
-   - Total forensic reports
-   - Unique source IPs
-   - Unique domains
-   - SPF/DKIM failure counts
-
-2. **All Forensic Reports**: Complete dataset with:
-   - Source IP
-   - Authentication results
-   - Original message headers (From, To, Subject)
-   - Delivery results
-   - Failure types
-
-3. **SPF Failures**: Reports where SPF failed
-4. **DKIM Failures**: Reports where DKIM failed
-5. **Failures by IP**: Aggregated by source IP
-6. **Failures by Domain**: Aggregated by domain
-
-## 🔍 Understanding DMARC Reports
-
-### RUA (Aggregate Reports)
-- **Purpose**: Statistical overview of email authentication results
-- **Content**: Aggregated data from multiple messages
-- **Frequency**: Typically sent daily
-- **Contains**: IP addresses, message counts, SPF/DKIM results
-
-### RUF (Forensic/Failure Reports)
-- **Purpose**: Detailed information about individual authentication failures
-- **Content**: Complete message headers and authentication details
-- **Frequency**: Sent per failure (real-time)
-- **Contains**: Original message headers, specific failure reasons
-
-### Authentication Methods
-
-- **SPF (Sender Policy Framework)**: Validates the sending server's IP
-- **DKIM (DomainKeys Identified Mail)**: Validates email integrity via cryptographic signature
-- **DMARC Policy**: Defines how to handle authentication failures (none, quarantine, reject)
-
-## 🎯 Use Cases
-
-### 1. Email Deliverability Analysis
-Identify why emails are failing authentication and fix configuration issues.
-
-### 2. Security Monitoring
-Detect unauthorized use of your domain (spoofing, phishing attempts).
-
-### 3. Compliance Reporting
-Generate reports for security audits and compliance requirements.
-
-### 4. Multi-Domain Management
-Analyze reports from multiple domains and email providers in one place.
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **No files extracted**
-   - Verify files are in the correct input directory
-   - Check file formats are supported (ZIP, GZ, EML, HTML, XML)
-   - Ensure files are not corrupted
-
-2. **Files not classified**
-   - Check if HTML/XML files contain DMARC report data
-   - Verify files have proper structure
-   - Some files may be marked as "unclassified" if they don't match RUA or RUF patterns
-
-3. **Analysis errors**
-   - Ensure files are properly classified before analysis
-   - Check for malformed HTML or XML
-   - Verify report format matches DMARC standards
-
-4. **Import errors**
-   - Run: `pip install -r requirements.txt`
-   - Ensure Python 3.7+ is installed
-
-## 📚 Examples
-
-See the `examples/` directory for:
-- `complete_pipeline_example.py` - Full pipeline usage
-- `step_by_step_example.py` - Individual step execution
-- Legacy examples for backward compatibility
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## ⚠️ Disclaimer
-
-This tool is for analyzing DMARC reports only. Always ensure you have permission to analyze email authentication data and handle email headers responsibly.
-
-## 📧 Support
-
-For issues, questions, or contributions, please open an issue on GitHub.
-
-## 🔗 Resources
-
-- [DMARC.org](https://dmarc.org/)
-- [RFC 7489 - DMARC Specification](https://tools.ietf.org/html/rfc7489)
-- [RFC 7960 - DMARC Feedback Reports](https://tools.ietf.org/html/rfc7960)
-- [Understanding DMARC Reports](https://dmarc.org/resources/data-sources/)
-
-## 🆕 What's New
-
-### Version 2.0
-- ✅ Complete support for both RUA and RUF reports
-- ✅ Automatic file extraction from multiple formats
-- ✅ Intelligent report classification
-- ✅ HTML report support in addition to XML
-- ✅ Modular architecture with 3 distinct parts
-- ✅ Command-line interface for easy usage
-- ✅ Backward compatibility with legacy analyzer
-
-## 🚀 Roadmap
-
-- [ ] Web interface for report upload and analysis
-- [ ] Real-time monitoring dashboard
-- [ ] Email alerts for critical failures
-- [ ] Integration with popular email platforms
-- [ ] Machine learning for threat detection
+**Nota:** Esta herramienta es para analizar reportes DMARC. Asegúrate siempre de tener permiso para analizar los datos de autenticación de correo electrónico y maneja las cabeceras de correo de manera responsable.
